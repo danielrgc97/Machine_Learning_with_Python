@@ -25,6 +25,8 @@ def main(args):
     # TODO: Split the dataset into a train set and a test set.
     # Use `sklearn.model_selection.train_test_split` method call, passing
     # arguments `test_size=args.test_size, random_state=args.seed`.
+    X_train, X_test = sklearn.model_selection.train_test_split(dataset.data, test_size=args.test_size, random_state=args.seed)
+    t_train, t_test = sklearn.model_selection.train_test_split(dataset.target, test_size=args.test_size, random_state=args.seed)
 
     lambdas = np.geomspace(0.01, 100, num=500)
     # TODO: Using `sklearn.linear_model.Ridge`, fit the train set using
@@ -32,8 +34,19 @@ def main(args):
     # For every model, compute the root mean squared error
     # (do not forget `sklearn.metrics.mean_squared_error`) and return the
     # lambda producing lowest test error.
-    best_lambda = None
-    best_rmse = None
+    best_rmse = 999
+    rmses = []
+    for i in range(lambdas.shape[0]):
+        model = sklearn.linear_model.Ridge(alpha=lambdas[i])
+        model.fit(X_train,t_train)
+        predictions = model.predict(X_test)
+        rmse = np.sqrt(sklearn.metrics.mean_squared_error(t_test,predictions))
+        rmses.append(rmse)
+        if rmse < best_rmse:
+            best_rmse = rmse
+            best_lambda = lambdas[i]
+        print(best_rmse,best_lambda)
+    
 
     if args.plot:
         # This block is not required to pass in ReCodEx, however, it is useful
