@@ -22,8 +22,7 @@ def main(args):
     # TODO: Split the dataset into a train set and a test set.
     # Use `sklearn.model_selection.train_test_split` method call, passing
     # arguments `test_size=args.test_size, random_state=args.seed`.
-    X_train, X_test = sklearn.model_selection.train_test_split(dataset.data, test_size=args.test_size, random_state=args.seed)
-    
+    data = dataset.data #splited later
 
     # TODO: Process the input columns in the following way:
     #
@@ -41,33 +40,32 @@ def main(args):
     # In the output, there should be first all the one-hot categorical features,
     # and then the real-valued features. To process different dataset columns
     # differently, you can use `sklearn.compose.ColumnTransformer`.
-    X_train_ord = np.ones([X_train.shape[0],1])
-    for i in range(X_train.shape[1]):
-        if np.all(X_train[:,i]%1 == 0):
-            X_train_ord = np.concatenate((X_train_ord, np.reshape(X_train[:,i],(-1,1))), axis=1)
-    onehotCols = X_train_ord.shape[1] - 1
-    for i in range(X_train.shape[1]):
-        if np.any(X_train[:,i]%1 != 0):
-            X_train_ord = np.concatenate((X_train_ord, np.reshape(X_train[:,i],(-1,1))), axis=1)
-    X_train_ord = X_train_ord[:,1:]
 
-    X_test_ord = np.ones([X_test.shape[0],1])
-    for i in range(X_test.shape[1]):
-        if np.all(X_test[:,i]%1 == 0):
-            X_test_ord = np.concatenate((X_test_ord, np.reshape(X_test[:,i],(-1,1))), axis=1)
-    onehotCols = X_test_ord.shape[1] - 1
-    for i in range(X_test.shape[1]):
-        if np.any(X_test[:,i]%1 != 0):
-            X_test_ord = np.concatenate((X_test_ord, np.reshape(X_test[:,i],(-1,1))), axis=1)
-    X_test_ord = X_test_ord[:,1:]
+    #reordening
+    data_ord = np.ones([data.shape[0],1])
+    for i in range(data.shape[1]):
+        if np.all(data[:,i]%1 == 0):
+            data_ord = np.concatenate((data_ord, np.reshape(data[:,i],(-1,1))), axis=1)
+    onehotCols = data_ord.shape[1] - 1
+    for i in range(data.shape[1]):
+        if np.any(data[:,i]%1 != 0):
+            data_ord = np.concatenate((data_ord, np.reshape(data[:,i],(-1,1))), axis=1)
+    totalCols = data_ord.shape[1] - 1
+    data_ord = data_ord[:,1:]
 
-    if onehotCols > 0:
-        print("onehotCols", onehotCols)
-        ct = sklearn.compose.ColumnTransformer([("norm1", sklearn.preprocessing.OneHotEncoder(sparse=False,handle_unknown='ignore'), slice(onehotCols)),("norm2", sklearn.preprocessing.StandardScaler(), slice(onehotCols,X_train_ord.shape[1]))])
+    #spliting
+    X_train, X_test = sklearn.model_selection.train_test_split(data_ord, test_size=args.test_size, random_state=args.seed)
+
+    #columtransformer
+    if totalCols > onehotCols > 0:
+        print("case1")
+        ct = sklearn.compose.ColumnTransformer([("norm1", sklearn.preprocessing.OneHotEncoder(sparse=False,handle_unknown='ignore'), slice(onehotCols)),("norm2", sklearn.preprocessing.StandardScaler(), slice(onehotCols,data.shape[1]))])
+    elif onehotCols == 0:
+        print("case2")
+        ct = sklearn.compose.ColumnTransformer([("norm2", sklearn.preprocessing.StandardScaler(), slice(onehotCols,data.shape[1]))])
     else:
-        print("oooo")
-        ct = sklearn.compose.ColumnTransformer([("norm2", sklearn.preprocessing.StandardScaler(), slice(onehotCols,X_train_ord.shape[1]))])
-    
+        print("case3")
+        ct = sklearn.compose.ColumnTransformer([("norm1", sklearn.preprocessing.OneHotEncoder(sparse=False,handle_unknown='ignore'), slice(onehotCols))])
 
     # TODO: Generate polynomial features of order 2 from the current features.
     # If the input values are [a, b, c, d], you should generate
@@ -84,10 +82,9 @@ def main(args):
     # TODO: Fit the feature processing steps on the training data.
     # Then transform the training data into `train_data` (you can do both these
     # steps using `fit_transform`), and transform testing data to `test_data`.
-    # train_data = pipe.fit_transform(X_train_ord)
-    # test_data = pipe.fit_transform(X_test_ord)
-    train_data = X_train
-    test_data = X_test
+    train_data = pipe.fit_transform(X_train)
+    test_data = pipe.fit_transform(X_test)
+    
     return train_data, test_data
 
 
