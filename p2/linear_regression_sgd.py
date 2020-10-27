@@ -72,8 +72,6 @@ def main(args):
         predictions_test = np.dot(X_test,weights)
         rmse_test = np.sqrt(sklearn.metrics.mean_squared_error(t_test,predictions_test))
         test_rmses.append(rmse_test)
-        
-        
 
     # TODO: Compute into `explicit_rmse` test data RMSE when
     # fitting `sklearn.linear_model.LinearRegression` on train_data.
