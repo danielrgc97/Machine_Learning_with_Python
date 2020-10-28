@@ -1,4 +1,4 @@
-##Repository for the assignment of "Introduction to Machine Learning with Python".
+Repository for the assignment of "Introduction to Machine Learning with Python".
 
 All required packages:
 pip3 install --user scikit-learn==0.23.2 pandas==1.1.2 numpy==1.18.5 scipy==1.5.2 matplotlib==3.3.2
