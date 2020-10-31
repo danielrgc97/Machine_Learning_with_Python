@@ -5,6 +5,9 @@ import sys
 import numpy as np
 import sklearn.datasets
 
+# 93bc2ff7-0d50-11eb-98c0-005056ad4f31.
+# b4fbbfe2-0fa9-11eb-98c0-005056ad4f31.
+
 parser = argparse.ArgumentParser()
 # These arguments will be set appropriately by ReCodEx, even if you change them.
 parser.add_argument("--data_size", default=100, type=int, help="Data size")
@@ -24,19 +27,27 @@ def main(args):
     target = 2 * target - 1
 
     # TODO: Append a constant feature with value 1 to the end of every input data
+    data = np.concatenate((data, np.ones([data.shape[0],1])), axis=1)
+    # np.savetxt('../../../Desktop/data.txt',target)
 
     # Generate initial perceptron weights
-    weights = np.zeros(data.shape[1])
+    weights = np.zeros([data.shape[1]])
+    y = np.zeros(data.shape[0])
 
     done = False
     while not done:
         permutation = generator.permutation(data.shape[0])
-
         # TODO: Implement the perceptron algorithm, notably one iteration
         # over the training data in the order of `permutation`. During the
         # training data iteration, perform the required update to the `weights`
         # for incorrectly classified examples. If all training instances are
         # correctly classified, set `done=True`, otherwise set `done=False`.
+        for i in range(data.shape[0]):
+            y[permutation[i]] = data[permutation[i],:]@weights
+            if target[permutation[i]]*y[permutation[i]] <= 0:
+                weights = weights + target[permutation[i]]*data[permutation[i],:]
+        if np.all(target[:]*y[:] > 0):
+            done = True
 
         if args.plot and not done:
             import matplotlib.pyplot as plt
