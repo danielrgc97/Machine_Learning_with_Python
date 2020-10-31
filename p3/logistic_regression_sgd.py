@@ -36,12 +36,16 @@ def main(args):
     # arguments `test_size=args.test_size, random_state=args.seed`.
     X_train, X_test = sklearn.model_selection.train_test_split(X, test_size=args.test_size, random_state=args.seed)
     t_train, t_test = sklearn.model_selection.train_test_split(target, test_size=args.test_size, random_state=args.seed)
+    train_data = X_train
+    train_target = X_test
+    test_data = t_train
+    test_target = t_test
     np.savetxt('../../../Desktop/data.txt',t_train)
 
     # Generate initial linear regression weights
-    weights = np.zeros(X_train.shape[1])
-    # weights = generator.uniform(size=X_train.shape[1])
-    y = np.zeros(data.shape[0])
+    # weights = np.zeros(X_train.shape[1])
+    weights = generator.uniform(size=X_train.shape[1])
+    y = np.zeros(X_train.shape[0])
 
     for iteration in range(args.iterations):
         permutation = generator.permutation(X_train.shape[0])
@@ -50,26 +54,35 @@ def main(args):
         # For every `args.batch_size`, average their gradient, and update the weights.
         # You can assume that `args.batch_size` exactly divides `train_data.shape[0]`.
 
-        grads = np.zeros([X_train.shape[1],args.batch_size])
-        for i in range(X_train.shape[0]):
-            y[permutation[i]] = X_train[permutation[i],:]@weights
-            if t_train[permutation[i]]*y[permutation[i]] <= 0:
-                gradient  = -t_train[permutation[i]]*X_train[permutation[i],:]
+        grads = np.ones([X_train.shape[1],1])
+        for j in range(X_train.shape[0]):
+            i = permutation[j]
+            y[i] = X_train[i,:]@weights
+            if t_train[i]*y[i] <= 0:
+                gradient  = - t_train[i]*X_train[i,:]
             else:
-                gradient = 0
-            iCorr = i % args.batch_size
-            grads[:,iCorr] = gradient
+                gradient = np.zeros(X_train.shape[1])
+            iCorr = j % args.batch_size
+            # grads[:,iCorr] = gradient
+            print(grads.shape)
+            grads = np.concatenate((grads, np.reshape(gradient,(-1,1))), axis=1)
             if iCorr == args.batch_size - 1:
-                print(grads)
-
-                gradient = np.sum(grads,axis=1)/args.batch_size
+                print("aaaaaaa")
+                gradient = np.sum(grads[:,1:],axis=1)/args.batch_size
+                grads = np.ones([X_train.shape[1],1])
                 weights = weights - args.learning_rate * gradient
                 # weights = weights + gradient
+        
 
         # TODO: After the SGD iteration, measure the average loss and accuracy for both the
         # train test and the test set. The loss is the average MLE loss (i.e., the
         # negative log likelihood, or crossentropy loss, or KL loss) per example.
-        train_accuracy, train_loss, test_accuracy, test_loss = 0,0,0,0
+        X_train_predictions = X_train@weights*t_train > 0
+        c = 0
+        for i in range(X_train.shape[0]):
+            if X_train_predictions[i] == False: c+=1
+        train_accuracy = 1 - c/X_train.shape[0]
+        train_loss, test_accuracy, test_loss = 0,0,0
 
         print("After iteration {}: train loss {:.4f} acc {:.1f}%, test loss {:.4f} acc {:.1f}%".format(
             iteration + 1, train_loss, 100 * train_accuracy, test_loss, 100 * test_accuracy))
