@@ -13,6 +13,10 @@ import sklearn.pipeline
 import sklearn.preprocessing
 import sklearn.linear_model
 
+# 93bc2ff7-0d50-11eb-98c0-005056ad4f31.
+# b4fbbfe2-0fa9-11eb-98c0-005056ad4f31.
+# 2eff3afe-1393-11eb-8e81-005056ad4f31.
+
 class Dataset:
     """Thyroid Dataset.
     The dataset contains real medical data related to thyroid gland function,
@@ -43,7 +47,7 @@ parser.add_argument("--recodex", default=False, action="store_true", help="Runni
 parser.add_argument("--seed", default=42, type=int, help="Random seed")
 # For these and any other arguments you add, ReCodEx will keep your default value.
 parser.add_argument("--model_path", default="thyroid_competition.model", type=str, help="Model path")
-parser.add_argument("--test_size", default=0.5, type=lambda x:int(x) if x.isdigit() else float(x), help="Test set size")
+parser.add_argument("--test_size", default=0.1, type=lambda x:int(x) if x.isdigit() else float(x), help="Test set size")
 
 def main(args):
     if args.predict is None:
@@ -57,12 +61,12 @@ def main(args):
         ct = sklearn.compose.ColumnTransformer([("norm1", sklearn.preprocessing.OneHotEncoder(sparse=False,handle_unknown='ignore'), slice(15)),("norm2", sklearn.preprocessing.StandardScaler(), slice(15,21))])
         pipe = sklearn.pipeline.Pipeline([
             ('ct', ct), 
-            ('poly', sklearn.preprocessing.PolynomialFeatures()),
+            ('poly', sklearn.preprocessing.PolynomialFeatures(include_bias=False)),
             ('lg',sklearn.linear_model.LogisticRegression(random_state=args.seed))])
         param_grid = {
-            'poly__degree': [1, 2],
-            'lg__C': [0.01 , 1 , 100],
-            'lg__solver': ('lbfgs','sag')
+            'poly__degree': [2],
+            'lg__C': [126],
+            'lg__max_iter':[95],
         }
         search = sklearn.model_selection.GridSearchCV(pipe, param_grid, n_jobs=-1, cv=5)
 
@@ -81,7 +85,6 @@ def main(args):
         ##TESTING##
 
         search.fit(train.data, train.target)
-
         model = search
 
         # Serialize the model.
