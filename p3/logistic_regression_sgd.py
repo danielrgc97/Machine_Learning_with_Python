@@ -46,7 +46,6 @@ def main(args):
 
     # Generate initial linear regression weights
     weights = generator.uniform(size=train_data.shape[1])
-    y = np.zeros(train_data.shape[0])
 
     for iteration in range(args.iterations):
         permutation = generator.permutation(train_data.shape[0])
